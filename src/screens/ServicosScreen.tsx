@@ -1,14 +1,32 @@
 import React from "react";
-import {View, Text, Image, TouchableOpacity, FlatList, StyleSheet,} from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+} from "react-native";
+
+// 👇 1. Importe o 'removerUsuario' e o 'theme'
+import { removerUsuario } from "../services/storage";
+import { theme } from "../styles/theme";
 
 const servicos = [
-  { id: 1, nome: "Corte Tradicional", preco: "R$ 35,00", duracao: "30 min" },
-  { id: 2, nome: "Corte Degradê", preco: "R$ 40,00", duracao: "40 min" },
-  { id: 3, nome: "Barba Completa", preco: "R$ 25,00", duracao: "20 min" },
-  { id: 4, nome: "Sobrancelha", preco: "R$ 10,00", duracao: "10 min" },
+  { id: 1, nome: "Corte Tradicional", preco: "R$ 30,00", duracao: "30 min" },
+  { id: 2, nome: "Corte Degradê", preco: "R$ 30,00", duracao: "30 min" },
+  { id: 3, nome: "Barba Completa", preco: "R$ 25,00", duracao: "30 min" },
+  { id: 4, nome: "Degradê + Barba", preco: "R$ 50,00", duracao: "30 min" },
 ];
 
 export default function ServicosScreen({ navigation }: any) {
+  
+  // 👇 2. Crie a função de logout
+  const handleLogout = async () => {
+    await removerUsuario();
+    navigation.replace("Login");
+  };
+
   return (
     <View style={styles.container}>
       {/* Fundo da tela */}
@@ -30,7 +48,7 @@ export default function ServicosScreen({ navigation }: any) {
       <FlatList
         data={servicos}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listaServicos}
+        contentContainerStyle={styles.listaServicos} // Estilo modificado abaixo
         renderItem={({ item }) => (
           <View style={styles.card}>
             <TouchableOpacity style={styles.addBtn}>
@@ -42,6 +60,11 @@ export default function ServicosScreen({ navigation }: any) {
           </View>
         )}
       />
+
+      {/* 👇 3. Adicione o botão de Sair aqui */}
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>Sair</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -62,7 +85,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginTop: -10,
   },
-  listaServicos: { alignItems: "center", paddingVertical: 20 },
+  listaServicos: {
+    alignItems: "center",
+    paddingVertical: 20,
+  },
   card: {
     backgroundColor: "#f9f9f9cc",
     borderRadius: 10,
@@ -86,4 +112,22 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 5 },
   cardPreco: { fontSize: 16 },
   cardTempo: { fontSize: 14, color: "gray" },
+
+  // 👇 4. Adicione os estilos para o novo botão
+  logoutButton: {
+    position: "absolute",
+    top: 50,    // 50 pixels do topo (para alinhar com seu cabeçalho)
+    right: 30,  // 30 pixels da direita
+    backgroundColor: theme.colors.primary, 
+    paddingVertical: 10,  // Diminuí um pouco o padding para ficar mais delicado no topo
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    elevation: 5, 
+    zIndex: 10, // Adicionado: Garante que o botão fique na frente de outros elementos
+  },
+  logoutButtonText: {
+    color: theme.colors.buttonText, // Cor do texto do seu tema
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
