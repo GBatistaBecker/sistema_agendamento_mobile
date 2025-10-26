@@ -23,16 +23,25 @@ export default function HomeScreen({ navigation }: any) {
   if (!usuario) return null;
 
   return (
-    <Background>
-      <Text style={styles.titulo}>Bem-vindo, {usuario.nome}!</Text>
-      <Text style={styles.texto}>Telefone: {usuario.telefone}</Text>
-      {usuario.email && <Text style={styles.texto}>E-mail: {usuario.email}</Text>}
+  <Background>
+    <Text style={styles.titulo}>Bem-vindo, {usuario.nome}!</Text>
+    <Text style={styles.texto}>Telefone: {usuario.telefone}</Text>
+    {usuario.email && <Text style={styles.texto}>E-mail: {usuario.email}</Text>}
 
-      <TouchableOpacity style={styles.button} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Sair</Text>
-      </TouchableOpacity>
-    </Background>
-  );
+    {/* 👉 Novo botão de serviços */}
+    <TouchableOpacity
+      style={styles.button}
+      onPress={() => navigation.navigate("Servicos")}
+    >
+      <Text style={styles.buttonText}>Ver Serviços</Text>
+    </TouchableOpacity>
+
+    {/* Botão de sair */}
+    <TouchableOpacity style={styles.button} onPress={handleLogout}>
+      <Text style={styles.buttonText}>Sair</Text>
+    </TouchableOpacity>
+  </Background>
+);
 }
 
 const styles = StyleSheet.create({
