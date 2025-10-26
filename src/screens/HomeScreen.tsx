@@ -1,61 +1,47 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { obterUsuario, removerUsuario } from "../services/storage";
+import React, { useEffect } from "react";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { obterUsuario } from "../services/storage";
 import Background from "../components/background";
 import { theme } from "../styles/theme";
 
 export default function HomeScreen({ navigation }: any) {
-  const [usuario, setUsuario] = useState<any>(null);
-
   useEffect(() => {
-    const carregar = async () => {
-      const dados = await obterUsuario();
-      if (dados) setUsuario(dados);
+    const carregarEredirecionar = async () => {
+      try {
+        // 1. Tenta obter os dados do usuário
+        const dados = await obterUsuario();
+
+        if (dados) {
+          // 2. Se encontrou, SUBSTITUI a tela atual pela de Serviços
+          navigation.replace("Servicos");
+        } else {
+          // 3. Se não encontrou, manda de volta pro Login
+          navigation.replace("Login");
+        }
+      } catch (error) {
+        console.error("Erro ao verificar usuário:", error);
+        navigation.replace("Login");
+      }
     };
-    carregar();
-  }, []);
 
-  const handleLogout = async () => {
-    await removerUsuario();
-    navigation.replace("Login");
-  };
+    carregarEredirecionar();
+  }, [navigation]); // Adiciona 'navigation' como dependência
 
-  if (!usuario) return null;
-
+  // Enquanto a verificação acontece, mostra uma tela de carregamento
+  // para o usuário não ver uma tela piscando.
   return (
     <Background>
-      <Text style={styles.titulo}>Bem-vindo, {usuario.nome}!</Text>
-      <Text style={styles.texto}>Telefone: {usuario.telefone}</Text>
-      {usuario.email && <Text style={styles.texto}>E-mail: {usuario.email}</Text>}
-
-      <TouchableOpacity style={styles.button} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Sair</Text>
-      </TouchableOpacity>
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={theme.colors.primary || "#fff"} />
+      </View>
     </Background>
   );
 }
 
 const styles = StyleSheet.create({
-  titulo: {
-    fontSize: 24,
-    marginBottom: 10,
-    color: "#fff",
-  },
-  texto: {
-    fontSize: 18,
-    marginBottom: 5,
-    color: "#fff",
-  },
-  button: {
-    backgroundColor: theme.colors.primary,
-    padding: 12,
-    borderRadius: 5,
-    marginTop: 20,
-    width: 200,
-  },
-  buttonText: {
-    color: theme.colors.buttonText,
-    textAlign: "center",
-    fontSize: 18,
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
