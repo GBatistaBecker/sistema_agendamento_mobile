@@ -51,9 +51,13 @@ export default function ServicosScreen({ navigation }: any) {
         contentContainerStyle={styles.listaServicos} // Estilo modificado abaixo
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <TouchableOpacity style={styles.addBtn}>
-              <Text style={styles.addBtnText}>+</Text>
+            <TouchableOpacity
+            style={styles.addBtn}
+            onPress={() => navigation.navigate("Data", { servico: item })}
+            >
+            <Text style={styles.addBtnText}>+</Text>
             </TouchableOpacity>
+
             <Text style={styles.cardTitle}>{item.nome}</Text>
             <Text style={styles.cardPreco}>{item.preco}</Text>
             <Text style={styles.cardTempo}>Duração: {item.duracao}</Text>

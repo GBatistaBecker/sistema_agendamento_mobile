@@ -39,14 +39,6 @@ export default function LoginScreen({ navigation }: any) {
 
   return (
     <Background>
-      <Image
-        source={require("../assets/images/tela-fundo-mobile.png")}
-        style={{ display: "none" }}
-      />
-      <Image
-        source={require("../assets/images/tela-fundo-mobile.png")}
-        style={{ display: "none" }}
-      />
       <TextInput
         style={styles.input}
         placeholder="Nome"
