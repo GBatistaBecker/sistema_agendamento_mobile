@@ -69,6 +69,11 @@ export default function ServicosScreen({ navigation }: any) {
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Sair</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.agendamentosButton} onPress={() => navigation.navigate("Agendamentos")}>
+        <Text style={styles.agendamentosButtonText}>Agendamentos</Text>
+      </TouchableOpacity>
+
     </View>
   );
 }
@@ -117,7 +122,7 @@ const styles = StyleSheet.create({
   cardPreco: { fontSize: 16 },
   cardTempo: { fontSize: 14, color: "gray" },
 
-  // 👇 4. Adicione os estilos para o novo botão
+  
   logoutButton: {
     position: "absolute",
     top: 50,    // 50 pixels do topo (para alinhar com seu cabeçalho)
@@ -134,4 +139,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  agendamentosButton: {
+  position: "absolute",
+  top: 50,
+  left: 25, // 👈 aqui está a diferença
+  backgroundColor: theme.colors.primary,
+  paddingVertical: 10,
+  paddingHorizontal: 5,
+  borderRadius: 5,
+  elevation: 5,
+  zIndex: 10,
+},
+
+agendamentosButtonText: {
+  color: theme.colors.buttonText,
+  fontSize: 16,
+  fontWeight: "bold",
+},
 });

@@ -1,3 +1,4 @@
+import "react-native-get-random-values";
 import React from "react";
 import {
   View,
@@ -10,6 +11,8 @@ import {
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { salvarAgendamento } from "../services/agendamentos";
+import { v4 as uuidv4 } from "uuid";
 
 export default function HorarioScreen() {
   const route = useRoute();
@@ -47,9 +50,24 @@ export default function HorarioScreen() {
       },
       {
         text: "Confirmar",
-        onPress: () => {
-          Alert.alert("Sucesso", "Agendamento realizado!");
-          navigation.navigate("Servicos");
+        onPress: async () => {
+          try {
+            const novoAgendamento = {
+              id: uuidv4(),
+              servico: servico.nome,
+              data: data.label,
+              hora: hora,
+            };
+
+            await salvarAgendamento(novoAgendamento);
+
+            Alert.alert("Sucesso", "Agendamento realizado!");
+
+            navigation.navigate("Servicos");
+          } catch (error) {
+            console.error(error);
+            Alert.alert("Erro", "Não foi possível salvar o agendamento");
+          }
         },
       },
     ]

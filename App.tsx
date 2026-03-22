@@ -7,6 +7,7 @@ import HomeScreen from "./src/screens/HomeScreen";
 import ServicosScreen from "./src/screens/ServicosScreen";
 import DataScreen from "./src/screens/DataScreen";
 import HorarioScreen from "./src/screens/HorarioScreen";
+import AgendamentosScreen from "./src/screens/AgendamentosScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -20,6 +21,7 @@ export default function App() {
         <Stack.Screen name="Servicos" component={ServicosScreen} />
         <Stack.Screen name="Data" component={DataScreen} />
         <Stack.Screen name="Horario" component={HorarioScreen} />
+        <Stack.Screen name="Agendamentos" component={AgendamentosScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
