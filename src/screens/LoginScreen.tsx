@@ -33,7 +33,11 @@ export default function LoginScreen({ navigation }: any) {
       return;
     }
 
-    await salvarUsuario({ nome, telefone });
+    // 🔥 AQUI ESTÁ A MUDANÇA
+    const tipo = nome.trim().toLowerCase() === "admin" ? "admin" : "cliente";
+
+    await salvarUsuario({ nome, telefone, tipo });
+
     navigation.replace("Home");
   };
 

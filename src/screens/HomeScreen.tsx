@@ -12,8 +12,12 @@ export default function HomeScreen({ navigation }: any) {
         const dados = await obterUsuario();
 
         if (dados) {
-          // 2. Se encontrou, SUBSTITUI a tela atual pela de Serviços
+         
+        if (dados.tipo === "admin") {
+          navigation.replace("Admin");
+        } else {
           navigation.replace("Servicos");
+        }
         } else {
           // 3. Se não encontrou, manda de volta pro Login
           navigation.replace("Login");

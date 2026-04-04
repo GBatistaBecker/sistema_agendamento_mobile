@@ -36,3 +36,13 @@ export async function removerAgendamento(id: string) {
     console.error("Erro ao remover agendamento:", error);
   }
 }
+
+export async function atualizarStatus(id: string, status: string) {
+  const lista = await obterAgendamentos();
+
+  const novaLista = lista.map((item: any) =>
+    item.id === id ? { ...item, status } : item
+  );
+
+  await SecureStore.setItemAsync(KEY, JSON.stringify(novaLista));
+}

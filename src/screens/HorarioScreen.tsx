@@ -13,66 +13,61 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { salvarAgendamento } from "../services/agendamentos";
 import { v4 as uuidv4 } from "uuid";
+import { obterUsuario } from "../services/storage"; // 🔥 NOVO IMPORT
 
 export default function HorarioScreen() {
   const route = useRoute();
   const navigation: any = useNavigation();
   const { servico, data }: any = route.params;
 
-  // Horários fixos (podemos melhorar depois)
   const horarios = [
-    "14:00",
-    "14:30",
-    "15:00",
-    "15:30",
-    "16:00",
-    "16:30",
-    "17:00",
-    "17:30",
-    "18:00",
-    "18:30",
-    "19:00",
-    "19:30",
-    "20:00",
-    "20:30",
-    "21:00",
-    "21:30",
+    "14:00","14:30","15:00","15:30","16:00","16:30",
+    "17:00","17:30","18:00","18:30","19:00","19:30",
+    "20:00","20:30","21:00","21:30",
   ];
 
   const confirmarHorario = (hora: string) => {
-  Alert.alert(
-    "Confirmar Agendamento",
-    `${servico.nome}\n${data.label}\nHorário: ${hora}`,
-    [
-      {
-        text: "Cancelar",
-        style: "cancel",
-      },
-      {
-        text: "Confirmar",
-        onPress: async () => {
-          try {
-            const novoAgendamento = {
-              id: uuidv4(),
-              servico: servico.nome,
-              data: data.label,
-              hora: hora,
-            };
-
-            await salvarAgendamento(novoAgendamento);
-
-            Alert.alert("Sucesso", "Agendamento realizado!");
-
-            navigation.navigate("Servicos");
-          } catch (error) {
-            console.error(error);
-            Alert.alert("Erro", "Não foi possível salvar o agendamento");
-          }
+    Alert.alert(
+      "Confirmar Agendamento",
+      `${servico.nome}\n${data.label}\nHorário: ${hora}`,
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
         },
-      },
-    ]
-  );
-};
+        {
+          text: "Confirmar",
+          onPress: async () => {
+            try {
+              // 🔥 PEGA O USUÁRIO LOGADO
+              const usuario = await obterUsuario();
+
+              const novoAgendamento = {
+                id: uuidv4(),
+                servico: servico.nome,
+                data: data.label,
+                hora: hora,
+                status: "pendente",
+
+                // 🔥 NOVOS CAMPOS
+                clienteNome: usuario?.nome,
+                clienteTelefone: usuario?.telefone,
+              };
+
+              await salvarAgendamento(novoAgendamento);
+
+              Alert.alert("Sucesso", "Agendamento realizado!");
+
+              navigation.navigate("Servicos");
+            } catch (error) {
+              console.error(error);
+              Alert.alert("Erro", "Não foi possível salvar o agendamento");
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -81,7 +76,7 @@ export default function HorarioScreen() {
         style={styles.backgroundImage}
       />
 
-      {/* Seta voltar */}
+      {/* pode manter a seta aqui, ela faz sentido nessa tela */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
@@ -172,12 +167,12 @@ const styles = StyleSheet.create({
   },
 
   card: {
-  backgroundColor: "#ffffffcc",
-  borderRadius: 14,
-  paddingVertical: 20,
-  width: "45%", // importante para grid
-  alignItems: "center",
-  marginBottom: 15,
+    backgroundColor: "#ffffffcc",
+    borderRadius: 14,
+    paddingVertical: 20,
+    width: "45%",
+    alignItems: "center",
+    marginBottom: 15,
   },
 
   cardText: {
