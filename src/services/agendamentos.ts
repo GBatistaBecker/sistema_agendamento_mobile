@@ -1,48 +1,74 @@
-import * as SecureStore from "expo-secure-store";
+const API = "http://192.168.0.10:8080/barbearia";
 
-const KEY = "AGENDAMENTOS";
-
-// 🔹 Buscar todos
+// 🔹 Buscar agendamentos do usuário
 export async function obterAgendamentos() {
   try {
-    const dados = await SecureStore.getItemAsync(KEY);
-    return dados ? JSON.parse(dados) : [];
+    const response = await fetch(`${API}/agendamentos-do-usuario`, {
+      method: "GET",
+      credentials: "include", // importante se estiver usando sessão
+    });
+
+    const data = await response.text(); // seu backend retorna String
+    return data;
   } catch (error) {
     console.error("Erro ao obter agendamentos:", error);
     return [];
   }
 }
 
-// 🔹 Salvar novo
+// 🔹 Salvar novo agendamento
 export async function salvarAgendamento(novo: any) {
   try {
-    const lista = await obterAgendamentos();
-    const atualizado = [...lista, novo];
+    const response = await fetch(`${API}/agendar`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      credentials: "include",
+      body: new URLSearchParams({
+        idServico: String(novo.idServico),
+        dataAgendamento: novo.dataAgendamento,
+        horaAgendamento: novo.horaAgendamento,
+      }).toString(),
+    });
 
-    await SecureStore.setItemAsync(KEY, JSON.stringify(atualizado));
+    const msg = await response.text();
+    return msg;
   } catch (error) {
     console.error("Erro ao salvar agendamento:", error);
   }
 }
 
-// 🔹 Remover
+// 🔹 Remover agendamento
 export async function removerAgendamento(id: string) {
   try {
-    const lista = await obterAgendamentos();
-    const filtrado = lista.filter((item: any) => item.id !== id);
+    const response = await fetch(`${API}/excluir-agendamento`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      credentials: "include",
+      body: new URLSearchParams({
+        idAgendamento: id,
+      }).toString(),
+    });
 
-    await SecureStore.setItemAsync(KEY, JSON.stringify(filtrado));
+    return await response.text();
   } catch (error) {
     console.error("Erro ao remover agendamento:", error);
   }
 }
 
-export async function atualizarStatus(id: string, status: string) {
-  const lista = await obterAgendamentos();
+// 🔹 Atualizar status (admin)
+export async function atualizarStatus(id: string, acao: "confirmar" | "cancelar") {
+  try {
+    const response = await fetch(`${API}/admin/${id}/${acao}`, {
+      method: "POST",
+      credentials: "include",
+    });
 
-  const novaLista = lista.map((item: any) =>
-    item.id === id ? { ...item, status } : item
-  );
-
-  await SecureStore.setItemAsync(KEY, JSON.stringify(novaLista));
+    return await response.text();
+  } catch (error) {
+    console.error("Erro ao atualizar status:", error);
+  }
 }
