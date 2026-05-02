@@ -1,12 +1,37 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, } from "react-native";
+import { Image } from "react-native";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+
 import { salvarUsuario } from "../services/storage";
 import Background from "../components/background";
 import { theme } from "../styles/theme";
 
+WebBrowser.maybeCompleteAuthSession();
+
 export default function LoginScreen({ navigation }: any) {
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
+
+  // 🔥 GOOGLE LOGIN CONFIG
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: "268953865825-pf1jh1lfth575cb7go0qc8f42de5o9eg.apps.googleusercontent.com",
+});
+
+  // 🔥 QUANDO LOGIN GOOGLE FUNCIONAR
+  useEffect(() => {
+    if (response?.type === "success") {
+      // 👉 por enquanto simples (depois melhoramos)
+      salvarUsuario({
+        nome: "Usuário Google",
+        telefone: "00000000000",
+        tipo: "cliente",
+      });
+
+      navigation.replace("Home");
+    }
+  }, [response]);
 
   const aplicarMascaraTelefone = (valor: string) => {
     let numeros = valor.replace(/\D/g, "").slice(0, 11);
@@ -33,8 +58,8 @@ export default function LoginScreen({ navigation }: any) {
       return;
     }
 
-    // 🔥 AQUI ESTÁ A MUDANÇA
-    const tipo = nome.trim().toLowerCase() === "admin" ? "admin" : "cliente";
+    const tipo =
+      nome.trim().toLowerCase() === "admin" ? "admin" : "cliente";
 
     await salvarUsuario({ nome, telefone, tipo });
 
@@ -47,22 +72,45 @@ export default function LoginScreen({ navigation }: any) {
         style={styles.input}
         placeholder="Nome"
         value={nome}
-        onChangeText={(text) => setNome(text.replace(/[^a-zA-ZÀ-ÿ\s]/g, ""))}
+        onChangeText={(text) =>
+          setNome(text.replace(/[^a-zA-ZÀ-ÿ\s]/g, ""))
+        }
       />
+
       <TextInput
         style={styles.input}
         placeholder="Telefone"
         keyboardType="phone-pad"
         value={telefone}
-        onChangeText={(text) => setTelefone(aplicarMascaraTelefone(text))}
+        onChangeText={(text) =>
+          setTelefone(aplicarMascaraTelefone(text))
+        }
       />
+
+      {/* LOGIN NORMAL */}
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Entrar</Text>
       </TouchableOpacity>
+
+      {/* 🔥 LOGIN COM GOOGLE */}
+      <TouchableOpacity
+        style={styles.googleButton}
+        onPress={() => promptAsync()}
+        disabled={!request}
+      >
+      <Image
+        source={require("../assets/images/icons8-google-48.png")}
+        style={styles.googleIcon}
+      />
+      <Text style={styles.googleText}>Entrar com Google</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity onPress={() => navigation.navigate("Cadastro")}>
-        <Text style={{ color: "white"}}>
+        <Text style={{ color: "white" }}>
           Ainda não tem cadastro?{" "}
-          <Text style={{ color: theme.colors.primary }}>Clique aqui</Text>
+          <Text style={{ color: theme.colors.primary }}>
+            Clique aqui
+          </Text>
         </Text>
       </TouchableOpacity>
     </Background>
@@ -77,6 +125,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 5,
   },
+
   button: {
     backgroundColor: theme.colors.button,
     padding: 12,
@@ -84,13 +133,36 @@ const styles = StyleSheet.create({
     marginTop: 10,
     width: 250,
   },
-  buttonText: {
-    color: theme.colors.buttonText,
-    textAlign: "center",
-    fontSize: 18,
+
+  googleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 5,
+    marginTop: 10,
+    width: 250,
+    borderWidth: 1,
+    borderColor: "#ddd",
   },
-  link: {
-    marginTop: 15,
-    color: "#333",
+
+  googleText: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: "#000",
+    fontWeight: "500",
+  },
+
+  googleIcon: {
+    width: 20,
+    height: 20,
+  },
+
+  buttonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
