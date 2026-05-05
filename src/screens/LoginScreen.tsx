@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, } from "react-native";
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import { Image } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
@@ -11,21 +17,20 @@ import { theme } from "../styles/theme";
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen({ navigation }: any) {
-  const [nome, setNome] = useState("");
-  const [telefone, setTelefone] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // 🔥 GOOGLE LOGIN CONFIG
+  // 🔥 GOOGLE LOGIN
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId: "268953865825-pf1jh1lfth575cb7go0qc8f42de5o9eg.apps.googleusercontent.com",
-});
+  });
 
-  // 🔥 QUANDO LOGIN GOOGLE FUNCIONAR
   useEffect(() => {
     if (response?.type === "success") {
-      // 👉 por enquanto simples (depois melhoramos)
       salvarUsuario({
         nome: "Usuário Google",
-        telefone: "00000000000",
+        email: "google@email.com",
         tipo: "cliente",
       });
 
@@ -33,76 +38,85 @@ export default function LoginScreen({ navigation }: any) {
     }
   }, [response]);
 
-  const aplicarMascaraTelefone = (valor: string) => {
-    let numeros = valor.replace(/\D/g, "").slice(0, 11);
-    if (numeros.length > 10) {
-      return numeros.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
-    } else if (numeros.length > 6) {
-      return numeros.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
-    } else if (numeros.length > 2) {
-      return numeros.replace(/(\d{2})(\d{0,5})/, "($1) $2");
-    } else {
-      return numeros.replace(/(\d*)/, "($1");
-    }
-  };
-
+  // 🔐 LOGIN COM BACKEND
   const handleLogin = async () => {
-    if (nome.trim() === "") {
-      Alert.alert("Erro", "O campo Nome é obrigatório.");
+    if (!email || !senha) {
+      Alert.alert("Erro", "Preencha email e senha.");
       return;
     }
 
-    const telNumeros = telefone.replace(/\D/g, "");
-    if (telNumeros.length < 10 || telNumeros.length > 11) {
-      Alert.alert("Erro", "Telefone inválido. Informe 10 ou 11 dígitos.");
-      return;
+    try {
+      setLoading(true);
+
+      const response = await fetch("http://SEU_IP:8080/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          senha,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert("Erro", data.message || "Login inválido");
+        return;
+      }
+
+      // 🔥 salva usuário (e token se tiver)
+      await salvarUsuario({
+        email,
+        token: data.token, // se backend retornar JWT
+        tipo: data.tipo || "cliente",
+      });
+
+      navigation.replace("Home");
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível conectar ao servidor.");
+    } finally {
+      setLoading(false);
     }
-
-    const tipo =
-      nome.trim().toLowerCase() === "admin" ? "admin" : "cliente";
-
-    await salvarUsuario({ nome, telefone, tipo });
-
-    navigation.replace("Home");
   };
 
   return (
     <Background>
       <TextInput
         style={styles.input}
-        placeholder="Nome"
-        value={nome}
-        onChangeText={(text) =>
-          setNome(text.replace(/[^a-zA-ZÀ-ÿ\s]/g, ""))
-        }
+        placeholder="E-mail"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
       />
 
       <TextInput
         style={styles.input}
-        placeholder="Telefone"
-        keyboardType="phone-pad"
-        value={telefone}
-        onChangeText={(text) =>
-          setTelefone(aplicarMascaraTelefone(text))
-        }
+        placeholder="Senha"
+        secureTextEntry
+        value={senha}
+        onChangeText={setSenha}
       />
 
-      {/* LOGIN NORMAL */}
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Entrar</Text>
+        <Text style={styles.buttonText}>
+          {loading ? "Entrando..." : "Entrar"}
+        </Text>
       </TouchableOpacity>
 
-      {/* 🔥 LOGIN COM GOOGLE */}
+      {/* GOOGLE LOGIN */}
       <TouchableOpacity
         style={styles.googleButton}
         onPress={() => promptAsync()}
         disabled={!request}
       >
-      <Image
-        source={require("../assets/images/icons8-google-48.png")}
-        style={styles.googleIcon}
-      />
-      <Text style={styles.googleText}>Entrar com Google</Text>
+        <Image
+          source={require("../assets/images/icons8-google-48.png")}
+          style={styles.googleIcon}
+        />
+        <Text style={styles.googleText}>Entrar com Google</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Cadastro")}>
@@ -125,7 +139,6 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 5,
   },
-
   button: {
     backgroundColor: theme.colors.button,
     padding: 12,
@@ -133,7 +146,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     width: 250,
   },
-
   googleButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -146,19 +158,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
   },
-
   googleText: {
     marginLeft: 10,
     fontSize: 16,
     color: "#000",
     fontWeight: "500",
   },
-
   googleIcon: {
     width: 20,
     height: 20,
   },
-
   buttonText: {
     color: "#fff",
     textAlign: "center",
