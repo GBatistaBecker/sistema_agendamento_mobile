@@ -16,10 +16,16 @@ export default function AgendamentosScreen() {
   const [agendamentos, setAgendamentos] = useState<any[]>([]);
   const navigation: any = useNavigation();
 
-  const carregar = async () => {
-    const dados = await obterAgendamentos();
+const carregar = async () => {
+  const dados = await obterAgendamentos();
+
+  if (typeof dados === "string") {
+    console.warn("Resposta como string:", dados);
+    setAgendamentos([]); // evita crash
+  } else {
     setAgendamentos(dados);
-  };
+  }
+};
 
   useEffect(() => {
     carregar();

@@ -48,29 +48,29 @@ export default function LoginScreen({ navigation }: any) {
     try {
       setLoading(true);
 
-      const response = await fetch("http://SEU_IP:8080/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          senha,
-        }),
-      });
+    const response = await fetch("http://192.168.0.10:8080/barbearia/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      credentials: "include",
+      body: new URLSearchParams({
+        emailUsuario: email,
+        senhaUsuario: senha,
+      }).toString(),
+    });
 
-      const data = await response.json();
+      const text = await response.text();
 
-      if (!response.ok) {
-        Alert.alert("Erro", data.message || "Login inválido");
-        return;
-      }
+    if (!response.ok) {
+      Alert.alert("Erro", text);
+      return;
+    }
 
       // 🔥 salva usuário (e token se tiver)
       await salvarUsuario({
         email,
-        token: data.token, // se backend retornar JWT
-        tipo: data.tipo || "cliente",
+        tipo: "cliente",
       });
 
       navigation.replace("Home");
