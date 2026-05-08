@@ -1,6 +1,12 @@
 import React, { useState } from "react";
-import { Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
-import { salvarUsuario } from "../services/storage";
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
+
 import Background from "../components/background";
 import { theme } from "../styles/theme";
 
@@ -9,15 +15,30 @@ export default function CadastroScreen({ navigation }: any) {
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const aplicarMascaraTelefone = (valor: string) => {
-    let numeros = valor.replace(/\D/g, "").slice(0, 11);
+  const aplicarMascaraTelefone = (
+    valor: string
+  ) => {
+    let numeros = valor
+      .replace(/\D/g, "")
+      .slice(0, 11);
+
     if (numeros.length > 10) {
-      return numeros.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+      return numeros.replace(
+        /(\d{2})(\d{5})(\d{4})/,
+        "($1) $2-$3"
+      );
     } else if (numeros.length > 6) {
-      return numeros.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+      return numeros.replace(
+        /(\d{2})(\d{4})(\d{0,4})/,
+        "($1) $2-$3"
+      );
     } else if (numeros.length > 2) {
-      return numeros.replace(/(\d{2})(\d{0,5})/, "($1) $2");
+      return numeros.replace(
+        /(\d{2})(\d{0,5})/,
+        "($1) $2"
+      );
     } else {
       return numeros.replace(/(\d*)/, "($1");
     }
@@ -25,32 +46,69 @@ export default function CadastroScreen({ navigation }: any) {
 
   const handleCadastro = async () => {
     if (!nome || !telefone || !email || !senha) {
-      Alert.alert("Erro", "Preencha todos os campos.");
+      Alert.alert(
+        "Erro",
+        "Preencha todos os campos."
+      );
       return;
     }
 
-    const telNumeros = telefone.replace(/\D/g, "");
-    if (telNumeros.length < 10 || telNumeros.length > 11) {
-      Alert.alert("Erro", "Telefone inválido.");
-      return;
-    }
+    const regexEmail =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!regexEmail.test(email)) {
       Alert.alert("Erro", "E-mail inválido.");
       return;
     }
 
-    await salvarUsuario({
-      nome,
-      telefone,
-      email,
-      senha,
-      tipo: "cliente",
-    });
+    try {
+      setLoading(true);
 
-    Alert.alert("Sucesso", "Cadastro realizado!");
-    navigation.replace("Login");
+      const response = await fetch(
+        "http://10.1.141.113:8080/barbearia/cadastro",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/x-www-form-urlencoded",
+          },
+
+          body: new URLSearchParams({
+            nomeCliente: nome,
+            telefoneCliente: telefone,
+            emailCliente: email,
+            senhaUsuario: senha,
+          }).toString(),
+        }
+      );
+
+      const text = await response.text();
+
+      console.log(text);
+
+      if (!response.ok) {
+        Alert.alert("Erro", text);
+        return;
+      }
+
+      Alert.alert(
+        "Sucesso",
+        "Cadastro realizado com sucesso!"
+      );
+
+      navigation.replace("Login");
+
+    } catch (error) {
+      console.log(error);
+
+      Alert.alert(
+        "Erro",
+        "Não foi possível conectar ao servidor."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,7 +117,11 @@ export default function CadastroScreen({ navigation }: any) {
         style={styles.input}
         placeholder="Nome"
         value={nome}
-        onChangeText={(text) => setNome(text.replace(/[^a-zA-ZÀ-ÿ\s]/g, ""))}
+        onChangeText={(text) =>
+          setNome(
+            text.replace(/[^a-zA-ZÀ-ÿ\s]/g, "")
+          )
+        }
       />
 
       <TextInput
@@ -67,13 +129,18 @@ export default function CadastroScreen({ navigation }: any) {
         placeholder="Telefone"
         keyboardType="phone-pad"
         value={telefone}
-        onChangeText={(text) => setTelefone(aplicarMascaraTelefone(text))}
+        onChangeText={(text) =>
+          setTelefone(
+            aplicarMascaraTelefone(text)
+          )
+        }
       />
 
       <TextInput
         style={styles.input}
         placeholder="E-mail"
         keyboardType="email-address"
+        autoCapitalize="none"
         value={email}
         onChangeText={setEmail}
       />
@@ -81,19 +148,34 @@ export default function CadastroScreen({ navigation }: any) {
       <TextInput
         style={styles.input}
         placeholder="Senha"
+        secureTextEntry
         value={senha}
         onChangeText={setSenha}
-        secureTextEntry
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleCadastro}>
-        <Text style={styles.buttonText}>Cadastrar</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleCadastro}
+      >
+        <Text style={styles.buttonText}>
+          {loading
+            ? "Cadastrando..."
+            : "Cadastrar"}
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate("Login")
+        }
+      >
         <Text style={{ color: "white" }}>
           Já possui uma conta?{" "}
-          <Text style={{ color: theme.colors.primary }}>Clique aqui</Text>
+          <Text
+            style={{ color: theme.colors.primary }}
+          >
+            Clique aqui
+          </Text>
         </Text>
       </TouchableOpacity>
     </Background>
@@ -108,6 +190,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 5,
   },
+
   button: {
     backgroundColor: theme.colors.button,
     padding: 12,
@@ -115,6 +198,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     width: 250,
   },
+
   buttonText: {
     color: theme.colors.buttonText,
     textAlign: "center",

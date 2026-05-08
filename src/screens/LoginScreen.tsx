@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
+
 import { Image } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
@@ -21,10 +22,12 @@ export default function LoginScreen({ navigation }: any) {
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔥 GOOGLE LOGIN
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: "268953865825-pf1jh1lfth575cb7go0qc8f42de5o9eg.apps.googleusercontent.com",
-  });
+  // LOGIN GOOGLE
+  const [request, response, promptAsync] =
+    Google.useAuthRequest({
+      clientId:
+        "268953865825-pf1jh1lfth575cb7go0qc8f42de5o9eg.apps.googleusercontent.com",
+    });
 
   useEffect(() => {
     if (response?.type === "success") {
@@ -38,44 +41,58 @@ export default function LoginScreen({ navigation }: any) {
     }
   }, [response]);
 
-  // 🔐 LOGIN COM BACKEND
   const handleLogin = async () => {
     if (!email || !senha) {
-      Alert.alert("Erro", "Preencha email e senha.");
+      Alert.alert(
+        "Erro",
+        "Preencha email e senha."
+      );
       return;
     }
 
     try {
       setLoading(true);
 
-    const response = await fetch("http://192.168.0.10:8080/barbearia/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      credentials: "include",
-      body: new URLSearchParams({
-        emailUsuario: email,
-        senhaUsuario: senha,
-      }).toString(),
-    });
+      const response = await fetch(
+        "http://10.1.141.113:8080/barbearia/login",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/x-www-form-urlencoded",
+          },
+
+          body: new URLSearchParams({
+            emailUsuario: email,
+            senhaUsuario: senha,
+          }).toString(),
+        }
+      );
 
       const text = await response.text();
 
-    if (!response.ok) {
-      Alert.alert("Erro", text);
-      return;
-    }
+      console.log(text);
 
-      // 🔥 salva usuário (e token se tiver)
+      if (!response.ok) {
+        Alert.alert("Erro", text);
+        return;
+      }
+
       await salvarUsuario({
         email,
         tipo: "cliente",
       });
 
       navigation.replace("Home");
+
     } catch (error) {
-      Alert.alert("Erro", "Não foi possível conectar ao servidor.");
+      console.log(error);
+
+      Alert.alert(
+        "Erro",
+        "Não foi possível conectar ao servidor."
+      );
     } finally {
       setLoading(false);
     }
@@ -100,13 +117,15 @@ export default function LoginScreen({ navigation }: any) {
         onChangeText={setSenha}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleLogin}
+      >
         <Text style={styles.buttonText}>
           {loading ? "Entrando..." : "Entrar"}
         </Text>
       </TouchableOpacity>
 
-      {/* GOOGLE LOGIN */}
       <TouchableOpacity
         style={styles.googleButton}
         onPress={() => promptAsync()}
@@ -116,13 +135,22 @@ export default function LoginScreen({ navigation }: any) {
           source={require("../assets/images/icons8-google-48.png")}
           style={styles.googleIcon}
         />
-        <Text style={styles.googleText}>Entrar com Google</Text>
+
+        <Text style={styles.googleText}>
+          Entrar com Google
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate("Cadastro")}>
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate("Cadastro")
+        }
+      >
         <Text style={{ color: "white" }}>
           Ainda não tem cadastro?{" "}
-          <Text style={{ color: theme.colors.primary }}>
+          <Text
+            style={{ color: theme.colors.primary }}
+          >
             Clique aqui
           </Text>
         </Text>
@@ -139,6 +167,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 5,
   },
+
   button: {
     backgroundColor: theme.colors.button,
     padding: 12,
@@ -146,6 +175,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     width: 250,
   },
+
   googleButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -158,16 +188,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
   },
+
   googleText: {
     marginLeft: 10,
     fontSize: 16,
     color: "#000",
     fontWeight: "500",
   },
+
   googleIcon: {
     width: 20,
     height: 20,
   },
+
   buttonText: {
     color: "#fff",
     textAlign: "center",
