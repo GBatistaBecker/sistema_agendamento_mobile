@@ -14,6 +14,7 @@ import * as Google from "expo-auth-session/providers/google";
 import { salvarUsuario } from "../services/storage";
 import Background from "../components/background";
 import { theme } from "../styles/theme";
+import { API } from "../constantes/API";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -53,9 +54,7 @@ export default function LoginScreen({ navigation }: any) {
     try {
       setLoading(true);
 
-      const response = await fetch(
-        "http://10.1.141.113:8080/barbearia/login",
-        {
+      const response = await fetch(`${API}/login`, {
           method: "POST",
 
           headers: {

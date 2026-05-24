@@ -19,7 +19,12 @@ export default function AdminScreen() {
 
   const carregar = async () => {
     const dados = await obterAgendamentos();
-    setAgendamentos(dados);
+
+    if (typeof dados === "string") {
+      setAgendamentos([]);
+    } else {
+      setAgendamentos(dados);
+    }
   };
 
   useEffect(() => {
@@ -32,7 +37,7 @@ export default function AdminScreen() {
       {
         text: "Sim",
         onPress: async () => {
-          await atualizarStatus(id, "confirmado");
+          await atualizarStatus(id, "confirmar"); // ✅ corrigido
           carregar();
         },
       },
@@ -45,7 +50,7 @@ export default function AdminScreen() {
       {
         text: "Sim",
         onPress: async () => {
-          await atualizarStatus(id, "cancelado");
+          await atualizarStatus(id, "cancelar"); // ✅ corrigido
           carregar();
         },
       },
@@ -53,75 +58,71 @@ export default function AdminScreen() {
   };
 
   const renderItem = ({ item }: any) => {
-  const statusFormatado =
-    item.status === "pendente"
-      ? "Pendente"
-      : item.status === "confirmado"
-      ? "Confirmado"
-      : "Cancelado";
+    const statusFormatado =
+      item.status === "pendente"
+        ? "Pendente"
+        : item.status === "confirmado"
+        ? "Confirmado"
+        : "Cancelado";
 
-  return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor:
-            item.status === "confirmado"
-              ? "#d4edda"
-              : item.status === "cancelado"
-              ? "#f8d7da"
-              : "#ffffffcc",
-        },
-      ]}
-    >
-      <View style={styles.row}>
-        {/* 🔹 ESQUERDA (INFO) */}
-        <View style={{ flex: 1 }}>
-          <Text style={styles.nome}>
-            {item.clienteNome || "Cliente não identificado"}
-          </Text>
+    return (
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor:
+              item.status === "confirmado"
+                ? "#d4edda"
+                : item.status === "cancelado"
+                ? "#f8d7da"
+                : "#ffffffcc",
+          },
+        ]}
+      >
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.nome}>
+              {item.clienteNome || "Cliente não identificado"}
+            </Text>
 
-          <Text style={styles.telefone}>
-            {item.clienteTelefone || "Sem telefone"}
-          </Text>
+            <Text style={styles.telefone}>
+              {item.clienteTelefone || "Sem telefone"}
+            </Text>
 
-          <Text style={styles.servico}>{item.servico}</Text>
+            <Text style={styles.servico}>{item.servico}</Text>
 
-          <Text style={styles.data}>
-            {item.data} - {item.hora}
-          </Text>
+            <Text style={styles.data}>
+              {item.data} - {item.hora}
+            </Text>
 
-          <Text style={styles.status}>
-            Status: {statusFormatado}
-          </Text>
-        </View>
+            <Text style={styles.status}>
+              Status: {statusFormatado}
+            </Text>
+          </View>
 
-        {/* 🔹 DIREITA (BOTÕES) */}
-        <View style={styles.botoes}>
-          {/* ✔ CONFIRMAR */}
-          {item.status !== "confirmado" && (
-            <TouchableOpacity
-              style={styles.ok}
-              onPress={() => confirmar(item.id)}
-            >
-              <Text style={styles.btnText}>✔</Text>
-            </TouchableOpacity>
-          )}
+          <View style={styles.botoes}>
+            {item.status !== "confirmado" && (
+              <TouchableOpacity
+                style={styles.ok}
+                onPress={() => confirmar(item.id)}
+              >
+                <Text style={styles.btnText}>✔</Text>
+              </TouchableOpacity>
+            )}
 
-          {/* ❌ CANCELAR */}
-          {item.status !== "cancelado" && (
-            <TouchableOpacity
-              style={styles.cancel}
-              onPress={() => cancelar(item.id)}
-            >
-              <Text style={styles.btnText}>❌</Text>
-            </TouchableOpacity>
-          )}
+            {item.status !== "cancelado" && (
+              <TouchableOpacity
+                style={styles.cancel}
+                onPress={() => cancelar(item.id)}
+              >
+                <Text style={styles.btnText}>❌</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </View>
-    </View>
-  );
-};
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -130,7 +131,6 @@ export default function AdminScreen() {
         style={styles.bg}
       />
 
-      {/* 🔴 BOTÃO SAIR */}
       <TouchableOpacity
         style={styles.sair}
         onPress={async () => {
@@ -143,9 +143,12 @@ export default function AdminScreen() {
 
       <FlatList
         data={agendamentos}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => item.id?.toString() ?? index.toString()} // ✅ corrigido
         renderItem={renderItem}
         contentContainerStyle={{ paddingTop: 100 }}
+        ListEmptyComponent={
+          <Text style={styles.vazio}>Nenhum agendamento encontrado</Text>
+        }
       />
     </View>
   );
@@ -156,7 +159,7 @@ const styles = StyleSheet.create({
 
   bg: {
     position: "absolute",
-    width: "220%",   // aumenta largura
+    width: "220%",
     height: "100%",
     resizeMode: "cover",
     right: -460,
@@ -194,22 +197,22 @@ const styles = StyleSheet.create({
   },
 
   botoes: {
-  justifyContent: "center",
-  alignItems: "center",
-  gap: 10,
-  marginLeft: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 10,
+    marginLeft: 10,
   },
 
   ok: {
-  backgroundColor: "#28a745",
-  padding: 12,
-  borderRadius: 8,
+    backgroundColor: "#28a745",
+    padding: 12,
+    borderRadius: 8,
   },
 
   cancel: {
-  backgroundColor: "#dc3545",
-  padding: 12,
-  borderRadius: 8,
+    backgroundColor: "#dc3545",
+    padding: 12,
+    borderRadius: 8,
   },
 
   btnText: {
@@ -218,14 +221,14 @@ const styles = StyleSheet.create({
   },
 
   sair: {
-     position: "absolute",
-    top: 50,    // 50 pixels do topo (para alinhar com seu cabeçalho)
-    right: 30,  // 30 pixels da direita
-    backgroundColor: theme.colors.primary, 
-    paddingVertical: 10,  // Diminuí um pouco o padding para ficar mais delicado no topo
+    position: "absolute",
+    top: 50,
+    right: 30,
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
-    elevation: 5, 
+    elevation: 5,
     zIndex: 10,
   },
 
@@ -233,9 +236,16 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
-  
+
   row: {
-  flexDirection: "row",
-  alignItems: "center",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  vazio: {
+    textAlign: "center",
+    marginTop: 40,
+    fontSize: 16,
+    color: "#fff",
   },
 });

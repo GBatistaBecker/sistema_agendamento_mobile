@@ -9,6 +9,7 @@ import {
 
 import Background from "../components/background";
 import { theme } from "../styles/theme";
+import { API } from "../constantes/API";
 
 export default function CadastroScreen({ navigation }: any) {
   const [nome, setNome] = useState("");
@@ -64,9 +65,7 @@ export default function CadastroScreen({ navigation }: any) {
     try {
       setLoading(true);
 
-      const response = await fetch(
-        "http://10.1.141.113:8080/barbearia/cadastro",
-        {
+      const response = await fetch(`${API}/cadastro`, {
           method: "POST",
 
           headers: {

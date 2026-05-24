@@ -44,12 +44,11 @@ export default function HorarioScreen() {
 
               const novoAgendamento = {
                 id: uuidv4(),
+                idServico: servico.id, // ✅ adicione isso
                 servico: servico.nome,
                 data: data.label,
                 hora: hora,
                 status: "pendente",
-
-                // 🔥 NOVOS CAMPOS
                 clienteNome: usuario?.nome,
                 clienteTelefone: usuario?.telefone,
               };
